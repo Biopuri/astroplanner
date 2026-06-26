@@ -58,3 +58,20 @@
     -fx-background-color: transparent;
     -fx-font-weight: bold;
 }
+
+.input-error {
+    -fx-border-color: #d32f2f;
+    -fx-border-width: 2;
+    -fx-border-radius: 4;
+    -fx-background-color: #fff7f7;
+}
+
+.validation-message {
+    -fx-text-fill: #d32f2f;
+    -fx-font-size: 11px;
+}
+
+.required-mark {
+    -fx-text-fill: #d32f2f;
+    -fx-font-weight: bold;
+}

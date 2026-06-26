@@ -25,14 +25,20 @@ public class SearchInputValidator {
         double parsedLatitude = parseDouble(latitude, "Latitude");
         double parsedLongitude = parseDouble(longitude, "Longitude");
 
-        parseDouble(elevationMeters, "Elevation");
+        if (!isBlank(elevationMeters)) {
+            parseDouble(elevationMeters, "Elevation");
+        }
 
         if (parsedLatitude < -90.0 || parsedLatitude > 90.0) {
-            throw new InputValidationException("Latitude must be between -90 and 90 degrees.");
+            throw new InputValidationException(
+                    "Latitude must be between -90 and 90 degrees!",
+                    SearchField.LATITUDE);
         }
 
         if (parsedLongitude < -180.0 || parsedLongitude > 180.0) {
-            throw new InputValidationException("Longitude must be between -180 and 180 degrees.");
+            throw new InputValidationException(
+                    "Longitude must be between -180 and 180 degrees!",
+                    SearchField.LONGITUDE);
         }
     }
 
@@ -43,13 +49,17 @@ public class SearchInputValidator {
      */
     public void validateTimeZone(String timeZone) {
         if (isBlank(timeZone)) {
-            throw new InputValidationException("Time zone is required.");
+            throw new InputValidationException(
+                    "Time zone is required!",
+                    SearchField.TIME_ZONE);
         }
 
         try {
             ZoneId.of(timeZone.trim());
         } catch (Exception exception) {
-            throw new InputValidationException("Invalid time zone: " + timeZone);
+            throw new InputValidationException(
+                    "Invalid time zone: " + timeZone,
+                    SearchField.TIME_ZONE);
         }
     }
 
@@ -64,15 +74,21 @@ public class SearchInputValidator {
             LocalDate endDate
     ) {
         if (startDate == null) {
-            throw new InputValidationException("Start date is required.");
+            throw new InputValidationException(
+                    "Start date is required!",
+                    SearchField.START_DATE);
         }
 
         if (endDate == null) {
-            throw new InputValidationException("End date is required.");
+            throw new InputValidationException(
+                    "End date is required!",
+                    SearchField.END_DATE);
         }
 
         if (startDate.isAfter(endDate)) {
-            throw new InputValidationException("Start date must be before or equal to end date.");
+            throw new InputValidationException(
+                    "Start date must be before or equal to end date!",
+                    SearchField.START_DATE);
         }
     }
 
@@ -90,21 +106,36 @@ public class SearchInputValidator {
             String minAzimuth,
             String maxAzimuth
     ) {
-        double parsedMinAltitude = parseDouble(minAltitude, "Minimum altitude");
-        double parsedMaxAltitude = parseDouble(maxAltitude, "Maximum altitude");
-        double parsedMinAzimuth = parseDouble(minAzimuth, "Minimum azimuth");
-        double parsedMaxAzimuth = parseDouble(maxAzimuth, "Maximum azimuth");
+        double parsedMinAltitude = isBlank(minAltitude)
+                ? -90.0
+                : parseDouble(minAltitude, "Minimum altitude");
+        double parsedMaxAltitude = isBlank(maxAltitude)
+                ? 90.0
+                : parseDouble(maxAltitude, "Maximum altitude");
+        double parsedMinAzimuth = isBlank(minAzimuth)
+                ? 0.0
+                : parseDouble(minAzimuth, "Minimum azimuth");
+        double parsedMaxAzimuth = isBlank(maxAzimuth)
+                ? 360.0
+                : parseDouble(maxAzimuth, "Maximum azimuth");
 
         if (parsedMinAltitude > parsedMaxAltitude) {
-            throw new InputValidationException("Minimum altitude must be less than or equal to maximum altitude.");
+            throw new InputValidationException(
+                    "Minimum altitude must be less than or equal to maximum altitude!",
+                    SearchField.MIN_ALTITUDE);
         }
 
         if (parsedMinAzimuth > parsedMaxAzimuth) {
-            throw new InputValidationException("Minimum azimuth must be less than or equal to maximum azimuth.");
+            throw new InputValidationException(
+                    "Minimum azimuth must be less than or equal to maximum azimuth!",
+                    SearchField.MIN_AZIMUTH);
         }
 
         if (parsedMinAzimuth < 0.0 || parsedMaxAzimuth > 360.0) {
-            throw new InputValidationException("Azimuth must be between 0 and 360 degrees.");
+            throw new InputValidationException(
+                    "Azimuth must be between 0 and 360 degrees!",
+                    SearchField.MIN_AZIMUTH,
+                    SearchField.MAX_AZIMUTH);
         }
     }
 
@@ -118,39 +149,47 @@ public class SearchInputValidator {
             String stepMinutes,
             String minimumDurationMinutes
     ) {
-        long parsedStepMinutes = parseLong(stepMinutes, "Step");
-        long parsedMinimumDurationMinutes = parseLong(minimumDurationMinutes, "Minimum duration");
+        long parsedStepMinutes = isBlank(stepMinutes)
+                ? 1L
+                : parseLong(stepMinutes, "Step");
+        long parsedMinimumDurationMinutes = isBlank(minimumDurationMinutes)
+                ? 0L
+                : parseLong(minimumDurationMinutes, "Minimum duration");
 
         if (parsedStepMinutes <= 0) {
-            throw new InputValidationException("Step must be greater than 0 minutes.");
+            throw new InputValidationException(
+                    "Step must be greater than 0 minutes!",
+                    SearchField.STEP);
         }
 
         if (parsedMinimumDurationMinutes < 0) {
-            throw new InputValidationException("Minimum duration must be greater than or equal to 0 minutes.");
+            throw new InputValidationException(
+                    "Minimum duration must be greater than or equal to 0 minutes!",
+                    SearchField.MIN_DURATION);
         }
     }
 
     private double parseDouble(String value, String fieldName) {
         if (isBlank(value)) {
-            throw new InputValidationException(fieldName + " is required.");
+            throw new InputValidationException(fieldName + " is required!");
         }
 
         try {
             return Double.parseDouble(value.trim().replace(',', '.'));
         } catch (NumberFormatException exception) {
-            throw new InputValidationException(fieldName + " must be a number.");
+            throw new InputValidationException(fieldName + " must be a number!");
         }
     }
 
     private long parseLong(String value, String fieldName) {
         if (isBlank(value)) {
-            throw new InputValidationException(fieldName + " is required.");
+            throw new InputValidationException(fieldName + " is required!");
         }
 
         try {
             return Long.parseLong(value.trim());
         } catch (NumberFormatException exception) {
-            throw new InputValidationException(fieldName + " must be an integer number.");
+            throw new InputValidationException(fieldName + " must be an integer number!");
         }
     }
 

@@ -8,12 +8,12 @@ import io.github.biopuri.astroplanner.core.service.EphemerisService;
 import io.github.biopuri.astroplanner.core.service.ObservationSearchService;
 import io.github.biopuri.astroplanner.core.service.SkyConditionService;
 import io.github.biopuri.astroplanner.desktop.model.ObservationWindowRow;
+import io.github.biopuri.astroplanner.desktop.model.SearchFormData;
 import io.github.biopuri.astroplanner.desktop.validation.SearchInputValidator;
 import io.github.biopuri.astroplanner.ephemeris.orekit.OrekitEphemerisService;
 import io.github.biopuri.astroplanner.ephemeris.orekit.OrekitSkyConditionService;
 
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -53,53 +53,50 @@ public class MainController {
      *
      * @return rows prepared for display in the result table.
      */
-    public List<ObservationWindowRow> search(
-            CelestialObject object,
-            String latitude,
-            String longitude,
-            String elevationMeters,
-            String timeZone,
-            LocalDate startDate,
-            LocalDate endDate,
-            String minAltitude,
-            String maxAltitude,
-            String minAzimuth,
-            String maxAzimuth,
-            SkyCondition skyCondition,
-            String stepMinutes,
-            String minimumDurationMinutes
-    ) {
-        validator.validateObserver(latitude, longitude, elevationMeters);
-        validator.validateTimeZone(timeZone);
-        validator.validateDates(startDate, endDate);
-        validator.validateAngleRanges(minAltitude, maxAltitude, minAzimuth, maxAzimuth);
-        validator.validateDurations(stepMinutes, minimumDurationMinutes);
+    public List<ObservationWindowRow> search(SearchFormData data) {
+        validator.validateObserver(
+                data.latitude(),
+                data.longitude(),
+                data.elevationMeters()
+        );
+        validator.validateTimeZone(data.timeZone());
+        validator.validateDates(data.startDate(), data.endDate());
+        validator.validateAngleRanges(
+                data.minAltitude(),
+                data.maxAltitude(),
+                data.minAzimuth(),
+                data.maxAzimuth()
+        );
+        validator.validateDurations(
+                data.stepMinutes(),
+                data.minimumDurationMinutes()
+        );
 
-        ZoneId zoneId = ZoneId.of(timeZone);
+        ZoneId zoneId = ZoneId.of(data.timeZone().trim());
 
         ObserverLocation observer = new ObserverLocation(
-                parseDouble(latitude),
-                parseDouble(longitude),
-                parseDouble(elevationMeters),
+                parseDouble(data.latitude()),
+                parseDouble(data.longitude()),
+                parseOptionalDouble(data.elevationMeters(), 0.0),
                 zoneId
         );
 
         ObservationSearchRequest request = new ObservationSearchRequest(
-                object,
+                data.object(),
                 observer,
-                startDate.atStartOfDay(zoneId),
-                endDate.atTime(23, 59).atZone(zoneId),
+                data.startDate().atStartOfDay(zoneId),
+                data.endDate().atTime(23, 59).atZone(zoneId),
                 new AngleRange(
-                        parseDouble(minAltitude),
-                        parseDouble(maxAltitude)
+                        parseOptionalDouble(data.minAltitude(), -90.0),
+                        parseOptionalDouble(data.maxAltitude(), 90.0)
                 ),
                 new AngleRange(
-                        parseDouble(minAzimuth),
-                        parseDouble(maxAzimuth)
+                        parseOptionalDouble(data.minAzimuth(), 0.0),
+                        parseOptionalDouble(data.maxAzimuth(), 360.0)
                 ),
-                Duration.ofMinutes(parseLong(stepMinutes)),
-                skyCondition,
-                Duration.ofMinutes(parseLong(minimumDurationMinutes))
+                Duration.ofMinutes(parseOptionalLong(data.stepMinutes(), 1L)),
+                data.skyCondition(),
+                Duration.ofMinutes(parseOptionalLong(data.minimumDurationMinutes(), 0L))
         );
 
         return searchService.findObservationWindows(request)
@@ -117,8 +114,32 @@ public class MainController {
                 String.format("%.2f°", window.startCoordinates().altitudeDegrees()),
                 String.format("%.2f°", window.endCoordinates().altitudeDegrees()),
                 String.format("%.2f°", window.startCoordinates().azimuthDegrees()),
-                String.format("%.2f°", window.endCoordinates().azimuthDegrees())
+                String.format("%.2f°", window.endCoordinates().azimuthDegrees()),
+                window.start().toLocalDateTime(),
+                window.end().toLocalDateTime()
         );
+    }
+
+    private double parseOptionalDouble(
+            String value,
+            double defaultValue
+    ) {
+        if (value == null || value.isBlank()) {
+            return defaultValue;
+        }
+
+        return parseDouble(value);
+    }
+
+    private long parseOptionalLong(
+            String value,
+            long defaultValue
+    ) {
+        if (value == null || value.isBlank()) {
+            return defaultValue;
+        }
+
+        return parseLong(value);
     }
 
     private double parseDouble(String value) {
