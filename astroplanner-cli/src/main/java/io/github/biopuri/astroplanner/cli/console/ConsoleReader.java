@@ -1,9 +1,6 @@
 package io.github.biopuri.astroplanner.cli.console;
 
-import io.github.biopuri.astroplanner.core.domain.AngleRange;
-import io.github.biopuri.astroplanner.core.domain.CelestialObject;
-import io.github.biopuri.astroplanner.core.domain.ObservationSearchRequest;
-import io.github.biopuri.astroplanner.core.domain.ObserverLocation;
+import io.github.biopuri.astroplanner.core.domain.*;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -31,10 +28,13 @@ public class ConsoleReader {
         System.out.print("Longitude: ");
         double longitude = Double.parseDouble(scanner.nextLine());
 
+        System.out.print("Elevation above sea level in meters: ");
+        double elevationMeters = Double.parseDouble(scanner.nextLine());
+
         System.out.print("Time zone, for example Europe/Moscow: ");
         ZoneId zoneId = ZoneId.of(scanner.nextLine());
 
-        return new ObserverLocation(latitude, longitude, zoneId);
+        return new ObserverLocation(latitude, longitude, elevationMeters, zoneId);
     }
 
     /**
@@ -58,6 +58,11 @@ public class ConsoleReader {
         System.out.print("Search step in minutes: ");
         long stepMinutes = Long.parseLong(scanner.nextLine());
 
+        SkyCondition skyCondition = readSkyCondition();
+
+        System.out.print("Minimum window duration in minutes: ");
+        long minimumWindowMinutes = Long.parseLong(scanner.nextLine());
+
         return new ObservationSearchRequest(
                 object,
                 observer,
@@ -65,7 +70,9 @@ public class ConsoleReader {
                 endDate.atTime(23, 59).atZone(observer.zoneId()),
                 altitudeRange,
                 azimuthRange,
-                Duration.ofMinutes(stepMinutes)
+                Duration.ofMinutes(stepMinutes),
+                skyCondition,
+                Duration.ofMinutes(minimumWindowMinutes)
         );
     }
 
@@ -91,5 +98,19 @@ public class ConsoleReader {
         double max = Double.parseDouble(scanner.nextLine());
 
         return new AngleRange(min, max);
+    }
+
+    private SkyCondition readSkyCondition() {
+        System.out.println("Choose sky condition:");
+        SkyCondition[] conditions = SkyCondition.values();
+
+        for (int i = 0; i < conditions.length; i++) {
+            System.out.printf("%d. %s%n", i + 1, conditions[i]);
+        }
+
+        System.out.print("> ");
+        int selected = Integer.parseInt(scanner.nextLine());
+
+        return conditions[selected - 1];
     }
 }

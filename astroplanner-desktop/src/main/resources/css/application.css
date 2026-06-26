@@ -1,0 +1,60 @@
+.root {
+    -fx-font-family: "Arial";
+    -fx-font-size: 13px;
+    -fx-background-color: #ffffff;
+}
+
+.app-header {
+    -fx-background-color: #202634;
+    -fx-padding: 18 22 18 22;
+}
+
+.app-title {
+    -fx-text-fill: white;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+}
+
+.app-subtitle {
+    -fx-text-fill: #c8ceda;
+    -fx-font-size: 13px;
+}
+
+.search-panel {
+    -fx-background-color: #f4f6fa;
+    -fx-padding: 12 16 16 16;
+}
+
+.section-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #202634;
+}
+
+.results-panel {
+    -fx-background-color: white;
+    -fx-padding: 16;
+}
+
+.status-bar {
+    -fx-background-color: #eef1f5;
+    -fx-padding: 8 16 8 16;
+}
+
+.search-button {
+    -fx-font-weight: bold;
+    -fx-padding: 8 18 8 18;
+}
+
+.table-view {
+    -fx-background-color: white;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #eef1f5;
+}
+
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-font-weight: bold;
+}

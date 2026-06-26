@@ -11,15 +11,18 @@ import java.time.ZoneId;
  * @param longitude observer longitude in decimal degrees.
  *                  Positive values indicate east of the Greenwich meridian,
  *                  negative values indicate west.
- * @param zoneId time zone of the observer represented as a {@link ZoneId}.
- *  *               Used for converting between local date/time and UTC during
- *  *               astronomical calculations.
+ * @param elevationMeters observer elevation above mean sea level in meters.
+ *                        Used to improve topocentric coordinate calculations.
+ * @param zoneId observer's time zone represented as a {@link ZoneId}.
+ *               Used to convert local date and time to UTC during
+ *               astronomical calculations.
  *
  * @author seijime
  */
 public record ObserverLocation(
         double latitude,
         double longitude,
+        double elevationMeters,
         ZoneId zoneId
 ) {
 }

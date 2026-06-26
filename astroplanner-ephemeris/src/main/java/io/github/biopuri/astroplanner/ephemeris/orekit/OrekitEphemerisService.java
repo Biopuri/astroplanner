@@ -76,7 +76,7 @@ public class OrekitEphemerisService implements EphemerisService {
         GeodeticPoint point = new GeodeticPoint(
                 FastMath.toRadians(observer.latitude()),
                 FastMath.toRadians(observer.longitude()),
-                0.0
+                observer.elevationMeters()
         );
 
         return new TopocentricFrame(earth, point, "observer");

@@ -1,5 +1,6 @@
 package io.github.biopuri.astroplanner.core.domain;
 
+import java.time.Duration;
 import java.time.ZonedDateTime;
 
 /**
@@ -23,4 +24,13 @@ public record ObservationWindow(
         HorizontalCoordinates startCoordinates,
         HorizontalCoordinates endCoordinates
 ) {
+
+    /**
+     * Returns the duration of the observation window.
+     *
+     * @return observation window duration.
+     */
+    public Duration duration() {
+        return Duration.between(start, end);
+    }
 }

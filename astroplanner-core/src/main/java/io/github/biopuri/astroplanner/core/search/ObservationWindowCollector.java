@@ -4,6 +4,7 @@ import io.github.biopuri.astroplanner.core.domain.CelestialObject;
 import io.github.biopuri.astroplanner.core.domain.HorizontalCoordinates;
 import io.github.biopuri.astroplanner.core.domain.ObservationWindow;
 
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,25 +47,46 @@ public class ObservationWindowCollector {
     /**
      * Closes the current observation window if one is open.
      *
+     * <p>Windows shorter than the configured minimum duration are discarded.</p>
+     *
      * @param object observed celestial object.
+     * @param minimumDuration minimum allowed observation window duration.
      */
-    public void closeWindow(CelestialObject object) {
+    public void closeWindow(
+            CelestialObject object,
+            Duration minimumDuration
+    ) {
+
         if (currentWindowStart == null) {
             return;
         }
 
-        windows.add(new ObservationWindow(
-                currentWindowStart,
-                previousMatchingTime,
-                object,
-                startCoordinates,
-                previousCoordinates
-        ));
+        ObservationWindow window = buildWindow(object);
+
+        if (!window.duration().minus(minimumDuration).isNegative()) {
+            windows.add(window);
+        }
 
         currentWindowStart = null;
         previousMatchingTime = null;
         startCoordinates = null;
         previousCoordinates = null;
+    }
+
+    /**
+     * Creates an observation window from the currently collected data.
+     *
+     * @param object observed celestial object.
+     * @return created observation window.
+     */
+    private ObservationWindow buildWindow(CelestialObject object) {
+        return new ObservationWindow(
+                currentWindowStart,
+                previousMatchingTime,
+                object,
+                startCoordinates,
+                previousCoordinates
+        );
     }
 
     /**

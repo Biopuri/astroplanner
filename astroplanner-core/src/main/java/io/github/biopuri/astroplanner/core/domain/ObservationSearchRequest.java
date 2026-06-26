@@ -13,6 +13,9 @@ import java.time.ZonedDateTime;
  * @param altitudeRange acceptable altitude range.
  * @param azimuthRange acceptable azimuth range.
  * @param step time step used during search.
+ * @param skyCondition preferred sky illumination by Sun.
+ * @param minimumWindowDuration minimum window duration for observation.
+ *                              Windows shorter than this duration are ignored.
  *
  * @author seijime
  */
@@ -23,6 +26,8 @@ public record ObservationSearchRequest(
         ZonedDateTime end,
         AngleRange altitudeRange,
         AngleRange azimuthRange,
-        Duration step
+        Duration step,
+        SkyCondition skyCondition,
+        Duration minimumWindowDuration
 ) {
 }

@@ -3,8 +3,11 @@ package io.github.biopuri.astroplanner.core.search;
 import io.github.biopuri.astroplanner.core.domain.CelestialPosition;
 import io.github.biopuri.astroplanner.core.domain.ObservationSearchRequest;
 import io.github.biopuri.astroplanner.core.domain.ObservationWindow;
+import io.github.biopuri.astroplanner.core.domain.SkyCondition;
 import io.github.biopuri.astroplanner.core.service.EphemerisService;
 import io.github.biopuri.astroplanner.core.service.ObservationSearchService;
+import io.github.biopuri.astroplanner.core.service.SkyConditionService;
+import lombok.RequiredArgsConstructor;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -17,61 +20,56 @@ import java.util.List;
  *
  * @author seijime
  */
+@RequiredArgsConstructor
 public class ObservationSearchServiceImpl implements ObservationSearchService {
 
     private final EphemerisService ephemerisService;
     private final ObservationCriteriaEvaluator criteriaEvaluator;
-
-    /**
-     * Creates a new observation search service.
-     *
-     * @param ephemerisService service used to calculate celestial positions.
-     * @param criteriaEvaluator evaluator of observation constraints.
-     */
-    public ObservationSearchServiceImpl(
-            EphemerisService ephemerisService,
-            ObservationCriteriaEvaluator criteriaEvaluator
-    ) {
-        this.ephemerisService = ephemerisService;
-        this.criteriaEvaluator = criteriaEvaluator;
-    }
+    private final SkyConditionService skyConditionService;
+    private final SkyConditionEvaluator skyConditionEvaluator;
 
     @Override
     public List<ObservationWindow> findObservationWindows(
             ObservationSearchRequest request
     ) {
-
-        ObservationWindowCollector collector =
-                new ObservationWindowCollector();
+        ObservationWindowCollector collector = new ObservationWindowCollector();
 
         ZonedDateTime current = request.start();
 
         while (!current.isAfter(request.end())) {
+            CelestialPosition position = ephemerisService.calculatePosition(
+                    request.object(),
+                    request.observer(),
+                    current
+            );
 
-            CelestialPosition position =
-                    ephemerisService.calculatePosition(
-                            request.object(),
-                            request.observer(),
-                            current
-                    );
+            SkyCondition actualSkyCondition = skyConditionService.calculateSkyCondition(
+                    request.observer(),
+                    current
+            );
 
-            if (criteriaEvaluator.matches(position, request)) {
+            boolean matchesPosition = criteriaEvaluator.matches(position, request);
+            boolean matchesSkyCondition = skyConditionEvaluator.matches(
+                    actualSkyCondition,
+                    request.skyCondition()
+            );
 
-                collector.add(
-                        current,
-                        position.horizontalCoordinates()
-                );
-
+            if (matchesPosition && matchesSkyCondition) {
+                collector.add(current, position.horizontalCoordinates());
             } else {
-
-                collector.closeWindow(request.object());
-
+                collector.closeWindow(
+                        request.object(),
+                        request.minimumWindowDuration()
+                );
             }
 
             current = current.plus(request.step());
         }
 
-        collector.closeWindow(request.object());
+        collector.closeWindow(
+                request.object(),
+                request.minimumWindowDuration()
+        );
 
         return collector.getWindows();
     }
