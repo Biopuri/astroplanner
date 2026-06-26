@@ -30,7 +30,7 @@ The goal of the project is to help amateur astronomers find the best observation
 
 ---
 
-## Example
+## Example СLI
 
 Input:
 
@@ -68,7 +68,8 @@ Azimuth : 70.07° → 73.85°
 astroplanner
 ├── astroplanner-core         # Domain model and search algorithms
 ├── astroplanner-ephemeris    # Orekit integration
-└── astroplanner-cli          # Command-line interface
+├── astroplanner-cli          # Command-line interface
+└── astroplanner-desktop      # Desktop app
 ```
 
 ---
@@ -78,7 +79,6 @@ astroplanner
 * Java 21
 * Maven
 * Orekit
-* Lombok
 
 ---
 
@@ -96,16 +96,17 @@ astroplanner
 
 * [x] Interactive CLI
 
+* [x] Desktop application
+
+* [x] Sky illumination mode
+
+* [x] Observer elevation
+
+* [x] Min window duration
+
 * [ ] Weather integration
 
 * [ ] Seeing and transparency
 
 * [ ] Moon phase
 
-* [ ] Desktop application
-
----
-
-## License
-
-MIT License
