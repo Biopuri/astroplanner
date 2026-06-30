@@ -2,6 +2,7 @@ package io.github.biopuri.astroplanner.desktop;
 
 import io.github.biopuri.astroplanner.core.domain.*;
 import io.github.biopuri.astroplanner.desktop.controller.MainController;
+import io.github.biopuri.astroplanner.desktop.util.OrekitDataExtractor;
 import io.github.biopuri.astroplanner.desktop.view.MainView;
 import io.github.biopuri.astroplanner.ephemeris.orekit.OrekitDataInitializer;
 import javafx.application.Application;
@@ -20,7 +21,8 @@ public class AstroplannerDesktopApplication extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        OrekitDataInitializer.initialize(Path.of("../orekit-data"));
+        Path orekitDataPath = OrekitDataExtractor.extractToUserDirectory();
+        OrekitDataInitializer.initialize(orekitDataPath);
 
         MainController controller = new MainController();
         MainView mainView = new MainView(controller);

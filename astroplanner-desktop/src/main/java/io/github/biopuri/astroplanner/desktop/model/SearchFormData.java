@@ -14,6 +14,7 @@ import java.time.LocalDate;
  * @author seijime
  */
 public record SearchFormData(
+        SearchMode searchMode,
         CelestialObject object,
         String latitude,
         String longitude,

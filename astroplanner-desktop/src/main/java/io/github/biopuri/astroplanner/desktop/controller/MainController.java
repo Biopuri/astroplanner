@@ -1,14 +1,17 @@
 package io.github.biopuri.astroplanner.desktop.controller;
 
 import io.github.biopuri.astroplanner.core.domain.*;
+import io.github.biopuri.astroplanner.core.search.AvailableObservationsSearchServiceImpl;
 import io.github.biopuri.astroplanner.core.search.ObservationCriteriaEvaluator;
 import io.github.biopuri.astroplanner.core.search.ObservationSearchServiceImpl;
 import io.github.biopuri.astroplanner.core.search.SkyConditionEvaluator;
+import io.github.biopuri.astroplanner.core.service.AvailableObservationsSearchService;
 import io.github.biopuri.astroplanner.core.service.EphemerisService;
 import io.github.biopuri.astroplanner.core.service.ObservationSearchService;
 import io.github.biopuri.astroplanner.core.service.SkyConditionService;
 import io.github.biopuri.astroplanner.desktop.model.ObservationWindowRow;
 import io.github.biopuri.astroplanner.desktop.model.SearchFormData;
+import io.github.biopuri.astroplanner.desktop.model.SearchMode;
 import io.github.biopuri.astroplanner.desktop.validation.SearchInputValidator;
 import io.github.biopuri.astroplanner.ephemeris.orekit.OrekitEphemerisService;
 import io.github.biopuri.astroplanner.ephemeris.orekit.OrekitSkyConditionService;
@@ -48,12 +51,37 @@ public class MainController {
                     new SkyConditionEvaluator()
             );
 
+    private final AvailableObservationsSearchService availableObservationsSearchService =
+            new AvailableObservationsSearchServiceImpl(searchService);
+
     /**
      * Searches observation windows using values entered in the desktop form.
+     *
+     * <p>The method supports two desktop search modes:
+     * selected object search and all objects search.</p>
      *
      * @return rows prepared for display in the result table.
      */
     public List<ObservationWindowRow> search(SearchFormData data) {
+        ObservationSearchRequest request = buildSearchRequest(data);
+
+        List<ObservationWindow> windows;
+
+        if (data.searchMode() == SearchMode.ALL_OBJECTS) {
+            windows = availableObservationsSearchService.findAvailableObservations(request);
+        } else {
+            windows = searchService.findObservationWindows(request);
+        }
+
+        return windows.stream()
+                .map(this::toRow)
+                .toList();
+    }
+
+    /**
+     * Converts desktop form values into a domain search request.
+     */
+    private ObservationSearchRequest buildSearchRequest(SearchFormData data) {
         validator.validateObserver(
                 data.latitude(),
                 data.longitude(),
@@ -81,7 +109,7 @@ public class MainController {
                 zoneId
         );
 
-        ObservationSearchRequest request = new ObservationSearchRequest(
+        return new ObservationSearchRequest(
                 data.object(),
                 observer,
                 data.startDate().atStartOfDay(zoneId),
@@ -98,11 +126,6 @@ public class MainController {
                 data.skyCondition(),
                 Duration.ofMinutes(parseOptionalLong(data.minimumDurationMinutes(), 0L))
         );
-
-        return searchService.findObservationWindows(request)
-                .stream()
-                .map(this::toRow)
-                .toList();
     }
 
     private ObservationWindowRow toRow(ObservationWindow window) {

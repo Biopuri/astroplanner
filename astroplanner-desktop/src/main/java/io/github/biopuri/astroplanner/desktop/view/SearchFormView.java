@@ -3,6 +3,7 @@ package io.github.biopuri.astroplanner.desktop.view;
 import io.github.biopuri.astroplanner.core.domain.CelestialObject;
 import io.github.biopuri.astroplanner.core.domain.SkyCondition;
 import io.github.biopuri.astroplanner.desktop.model.SearchFormData;
+import io.github.biopuri.astroplanner.desktop.model.SearchMode;
 import io.github.biopuri.astroplanner.desktop.validation.SearchField;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -53,6 +54,8 @@ public class SearchFormView {
 
     private final Button searchButton = new Button("Find observation windows");
 
+    private final CheckBox allObjectsCheckBox = new CheckBox("Search all supported objects");
+
     private final Map<SearchField, Control> validationControls =
             new EnumMap<>(SearchField.class);
 
@@ -70,6 +73,8 @@ public class SearchFormView {
         configureTimeZoneAutocomplete();
 
         registerValidationControls();
+
+        configureSearchMode();
 
         root = createRoot();
     }
@@ -90,6 +95,9 @@ public class SearchFormView {
      */
     public SearchFormData getData() {
         return new SearchFormData(
+                allObjectsCheckBox.isSelected()
+                        ? SearchMode.ALL_OBJECTS
+                        : SearchMode.SELECTED_OBJECT,
                 objectBox.getValue(),
                 latitudeField.getText(),
                 longitudeField.getText(),
@@ -164,6 +172,20 @@ public class SearchFormView {
         }
     }
 
+    /**
+     * Configures interaction between search mode controls.
+     *
+     * <p>When "Search all objects" is enabled, the selected celestial object
+     * is ignored, therefore the object combo box is disabled.</p>
+     */
+    private void configureSearchMode() {
+        objectBox.setDisable(allObjectsCheckBox.isSelected());
+
+        allObjectsCheckBox.selectedProperty().addListener((obs, oldValue, selected) ->
+                objectBox.setDisable(selected)
+        );
+    }
+
     private VBox createRoot() {
         GridPane grid = new GridPane();
         grid.setHgap(12);
@@ -174,6 +196,9 @@ public class SearchFormView {
 
         addRow(grid, row, "Object", objectBox, 0, true);
         addRow(grid, row, "Sky condition", skyConditionBox, 2, true);
+        row++;
+
+        grid.add(allObjectsCheckBox, 1, row);
         row++;
 
         addRow(grid, row, "Latitude", latitudeField, 0, true);

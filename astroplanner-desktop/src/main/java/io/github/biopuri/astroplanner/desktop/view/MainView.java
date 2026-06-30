@@ -92,11 +92,12 @@ public class MainView {
         task.setOnSucceeded(event -> {
             resultsTableView.setRows(task.getValue());
 
-            if (searchFormView.getData().object() == CelestialObject.MOON) {
-                resultsTableView.selectFirstRow();
-            } else {
-                resultsTableView.hideMoonInfo();
-            }
+            /*
+             * Moon information is shown only when the selected table row
+             * represents the Moon. In all-objects mode the first result
+             * may belong to any celestial object.
+             */
+            resultsTableView.hideMoonInfo();
 
             searchFormView.setSearchEnabled(true);
             resultsTableView.setSearching(false);
@@ -141,17 +142,18 @@ public class MainView {
     /**
      * Shows Moon information for the selected observation window.
      *
+     * <p>In all-objects mode the selected object is determined
+     * from the table row, not from the search form.</p>
+     *
      * @param row selected observation window row.
      */
     private void updateMoonInfo(ObservationWindowRow row) {
-        var formData = searchFormView.getData();
-
-        if (formData.object() != CelestialObject.MOON) {
+        if (row == null || !CelestialObject.MOON.name().equals(row.object())) {
             resultsTableView.hideMoonInfo();
             return;
         }
 
-        ZoneId zoneId = ZoneId.of(formData.timeZone());
+        ZoneId zoneId = ZoneId.of(searchFormView.getData().timeZone());
 
         MoonInfo moonInfo = moonInfoCalculator.calculate(
                 row.startDateTime().atZone(zoneId)
